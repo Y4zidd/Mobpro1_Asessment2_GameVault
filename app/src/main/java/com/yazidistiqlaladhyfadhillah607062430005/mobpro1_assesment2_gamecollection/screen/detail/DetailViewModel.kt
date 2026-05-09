@@ -25,6 +25,7 @@ class DetailViewModel(private val dao: GameDao) : ViewModel() {
                         title = game.title,
                         platform = game.platform,
                         rating = game.rating.toFloat(),
+                        playTime = game.playTime.toString(),
                         finished = game.finished,
                         imageUrl = game.imageUrl,
                         isEdit = true
@@ -39,6 +40,7 @@ class DetailViewModel(private val dao: GameDao) : ViewModel() {
             is DetailAction.OnTitleChange -> _uiState.update { it.copy(title = action.title) }
             is DetailAction.OnPlatformChange -> _uiState.update { it.copy(platform = action.platform) }
             is DetailAction.OnRatingChange -> _uiState.update { it.copy(rating = action.rating) }
+            is DetailAction.OnPlayTimeChange -> _uiState.update { it.copy(playTime = action.playTime) }
             is DetailAction.OnFinishedChange -> _uiState.update { it.copy(finished = action.finished) }
             is DetailAction.OnImageUrlChange -> _uiState.update { it.copy(imageUrl = action.url) }
             DetailAction.OnSave -> saveGame()
@@ -55,6 +57,7 @@ class DetailViewModel(private val dao: GameDao) : ViewModel() {
             title = state.title,
             platform = state.platform,
             rating = state.rating.toInt(),
+            playTime = state.playTime.toIntOrNull() ?: 0,
             finished = state.finished,
             imageUrl = state.imageUrl
         )
@@ -78,6 +81,7 @@ data class DetailUiState(
     val title: String = "",
     val platform: String = "",
     val rating: Float = 3f,
+    val playTime: String = "0",
     val finished: Boolean = false,
     val imageUrl: String = "",
     val isEdit: Boolean = false

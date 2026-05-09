@@ -5,6 +5,7 @@
     <string name="title">Title</string>
     <string name="platform">Platform</string>
     <string name="rating">Rating: %d/5</string>
+    <string name="play_time">Play Time (Hours)</string>
     <string name="finished">Finished</string>
     <string name="save">Save</string>
     <string name="delete">Delete</string>
