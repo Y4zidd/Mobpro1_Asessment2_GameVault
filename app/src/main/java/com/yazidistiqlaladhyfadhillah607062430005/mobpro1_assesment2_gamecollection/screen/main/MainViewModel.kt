@@ -21,6 +21,12 @@ class MainViewModel(
         initialValue = emptyList()
     )
 
+    val deletedData: StateFlow<List<Game>> = dao.getDeletedGames().stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = emptyList()
+    )
+
     val layoutMode: StateFlow<Boolean> = dataStore.layoutFlow.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
@@ -33,6 +39,12 @@ class MainViewModel(
         initialValue = 0
     )
 
+    val themeColor: StateFlow<String> = dataStore.colorFlow.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = "Blue"
+    )
+
     fun onAction(action: MainAction) {
         when (action) {
             is MainAction.OnLayoutToggle -> {
@@ -42,13 +54,27 @@ class MainViewModel(
             }
             is MainAction.OnDeleteGame -> {
                 viewModelScope.launch {
-                    val game = dao.getGameById(action.id)
-                    if (game != null) dao.delete(game)
+                    dao.moveToTrash(action.id)
+                }
+            }
+            is MainAction.OnRestoreGame -> {
+                viewModelScope.launch {
+                    dao.restoreFromTrash(action.id)
+                }
+            }
+            is MainAction.OnDeletePermanently -> {
+                viewModelScope.launch {
+                    dao.deletePermanentlyById(action.id)
                 }
             }
             is MainAction.OnThemeChange -> {
                 viewModelScope.launch {
                     dataStore.saveTheme(action.mode)
+                }
+            }
+            is MainAction.OnColorChange -> {
+                viewModelScope.launch {
+                    dataStore.saveColor(action.color)
                 }
             }
         }
