@@ -6,8 +6,8 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.NightsStay
-import androidx.compose.material.icons.filled.WbSunny
+import androidx.compose.material.icons.filled.Palette
+import androidx.compose.material.icons.filled.RestoreFromTrash
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.res.painterResource
@@ -45,12 +45,11 @@ fun AppTopBar(
 @Composable
 fun MainTopBarActions(
     isListLayout: Boolean,
-    themeMode: Int,
     onLayoutToggle: () -> Unit,
-    onThemeToggle: () -> Unit,
+    onThemeClick: () -> Unit,
+    onTrashClick: () -> Unit,
     onAboutClick: () -> Unit
 ) {
-    // Tombol Toggle Layout (List/Grid)
     IconButton(onClick = onLayoutToggle) {
         Icon(
             painter = painterResource(
@@ -60,20 +59,21 @@ fun MainTopBarActions(
         )
     }
 
-    // Tombol Toggle Tema (Matahari / Bulan)
-    IconButton(onClick = onThemeToggle) {
+    IconButton(onClick = onThemeClick) {
         Icon(
-            imageVector = if (themeMode == 2) Icons.Default.WbSunny else Icons.Default.NightsStay,
-            contentDescription = "Toggle Theme",
-            tint = if (themeMode == 2) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+            imageVector = Icons.Default.Palette,
+            contentDescription = "Pilih Tema"
         )
     }
 
-    // Tombol About
+    IconButton(onClick = onTrashClick) {
+        Icon(imageVector = Icons.Default.RestoreFromTrash, contentDescription = "Recycle Bin")
+    }
+
     IconButton(onClick = onAboutClick) {
         Icon(
             imageVector = Icons.Default.Info,
-            contentDescription = "About Developer"
+            contentDescription = "About"
         )
     }
 }
@@ -85,23 +85,17 @@ fun DetailTopBarActions(
 ) {
     if (isEdit) {
         var showMenu by remember { mutableStateOf(false) }
-
         IconButton(onClick = { showMenu = true }) {
             Icon(imageVector = Icons.Default.MoreVert, contentDescription = null)
         }
-        DropdownMenu(
-            expanded = showMenu,
-            onDismissRequest = { showMenu = false }
-        ) {
+        DropdownMenu(expanded = showMenu, onDismissRequest = { showMenu = false }) {
             DropdownMenuItem(
                 text = { Text(stringResource(id = R.string.delete)) },
                 onClick = {
                     showMenu = false
                     onDeleteClick()
                 },
-                leadingIcon = {
-                    Icon(imageVector = Icons.Default.Delete, contentDescription = null)
-                }
+                leadingIcon = { Icon(imageVector = Icons.Default.Delete, contentDescription = null) }
             )
         }
     }
