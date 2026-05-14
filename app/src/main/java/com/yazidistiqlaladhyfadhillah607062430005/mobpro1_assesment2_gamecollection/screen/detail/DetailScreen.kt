@@ -1,6 +1,5 @@
 package com.yazidistiqlaladhyfadhillah607062430005.mobpro1_assesment2_gamecollection.screen.detail
 
-import android.net.Uri
 import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -14,6 +13,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
@@ -32,10 +32,11 @@ fun DetailScreen(navController: NavHostController, id: Long = -1L) {
     val context = LocalContext.current
     val db = GameDb.getInstance(context)
     val dataStore = SettingsDataStore(context)
-    val factory = ViewModelFactory(db.dao, dataStore)
+    val factory = ViewModelFactory(db.dao, db.categoryDao, dataStore)
     val viewModel: DetailViewModel = viewModel(factory = factory)
 
     val state by viewModel.uiState.collectAsState()
+    val categories by viewModel.categories.collectAsState()
     var showDeleteDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(id) {
@@ -83,6 +84,11 @@ fun DetailScreen(navController: NavHostController, id: Long = -1L) {
                 onTitleChange = { viewModel.onAction(DetailAction.OnTitleChange(it)) },
                 platform = state.platform,
                 onPlatformChange = { viewModel.onAction(DetailAction.OnPlatformChange(it)) },
+                categoryId = state.categoryId,
+                onCategoryChange = { viewModel.onAction(DetailAction.OnCategoryChange(it)) },
+                categories = categories,
+                customCategoryName = state.customCategoryName,
+                onCustomCategoryChange = { viewModel.onAction(DetailAction.OnCustomCategoryChange(it)) },
                 rating = state.rating,
                 onRatingChange = { viewModel.onAction(DetailAction.OnRatingChange(it)) },
                 playTime = state.playTime,
@@ -91,7 +97,7 @@ fun DetailScreen(navController: NavHostController, id: Long = -1L) {
                 onFinishedChange = { viewModel.onAction(DetailAction.OnFinishedChange(it)) },
                 imageUrl = state.imageUrl,
                 onImageUrlChange = { uriString ->
-                    val uri = Uri.parse(uriString)
+                    val uri = uriString.toUri()
                     val savedPath = ImageStorage.saveToInternalStorage(context, uri)
                     if (savedPath != null) {
                         viewModel.onAction(DetailAction.OnImageUrlChange(savedPath))

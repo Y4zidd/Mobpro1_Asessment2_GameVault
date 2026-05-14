@@ -3,6 +3,8 @@ package com.yazidistiqlaladhyfadhillah607062430005.mobpro1_assesment2_gamecollec
 sealed interface DetailAction {
     data class OnTitleChange(val title: String) : DetailAction
     data class OnPlatformChange(val platform: String) : DetailAction
+    data class OnCategoryChange(val categoryId: Long) : DetailAction
+    data class OnCustomCategoryChange(val name: String) : DetailAction
     data class OnRatingChange(val rating: Float) : DetailAction
     data class OnPlayTimeChange(val playTime: String) : DetailAction
     data class OnFinishedChange(val finished: Boolean) : DetailAction

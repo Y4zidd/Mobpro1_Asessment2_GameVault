@@ -16,6 +16,7 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.yazidistiqlaladhyfadhillah607062430005.mobpro1_assesment2_gamecollection.R
+import com.yazidistiqlaladhyfadhillah607062430005.mobpro1_assesment2_gamecollection.model.Category
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -24,6 +25,11 @@ fun FormGame(
     onTitleChange: (String) -> Unit,
     platform: String,
     onPlatformChange: (String) -> Unit,
+    categoryId: Long,
+    onCategoryChange: (Long) -> Unit,
+    categories: List<Category>,
+    customCategoryName: String,
+    onCustomCategoryChange: (String) -> Unit,
     rating: Float,
     onRatingChange: (Float) -> Unit,
     playTime: String,
@@ -41,7 +47,12 @@ fun FormGame(
     }
 
     val platforms = listOf("PC", "PlayStation 5", "PlayStation 4", "Xbox Series X/S", "Nintendo Switch", "Android / iOS", "Other")
-    var expanded by remember { mutableStateOf(false) }
+    var platformExpanded by remember { mutableStateOf(false) }
+    var categoryExpanded by remember { mutableStateOf(false) }
+
+    val selectedCategory = categories.find { it.categoryId == categoryId }
+    val selectedCategoryName = selectedCategory?.name ?: "Pilih Kategori"
+    val isOtherSelected = selectedCategory?.name == "Other"
 
     Column(
         modifier = modifier.fillMaxWidth(),
@@ -59,10 +70,56 @@ fun FormGame(
             )
         )
 
-        // Dropdown Platform
+        Column {
+            ExposedDropdownMenuBox(
+                expanded = categoryExpanded,
+                onExpandedChange = { categoryExpanded = !categoryExpanded },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                OutlinedTextField(
+                    value = selectedCategoryName,
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text("Category") },
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = categoryExpanded) },
+                    colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
+                    modifier = Modifier
+                        .menuAnchor(MenuAnchorType.PrimaryNotEditable)
+                        .fillMaxWidth()
+                )
+                ExposedDropdownMenu(
+                    expanded = categoryExpanded,
+                    onDismissRequest = { categoryExpanded = false }
+                ) {
+                    categories.forEach { category ->
+                        DropdownMenuItem(
+                            text = { Text(category.name) },
+                            onClick = {
+                                onCategoryChange(category.categoryId)
+                                categoryExpanded = false
+                            },
+                            contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
+                        )
+                    }
+                }
+            }
+
+            if (isOtherSelected) {
+                Spacer(modifier = Modifier.height(8.dp))
+                OutlinedTextField(
+                    value = customCategoryName,
+                    onValueChange = onCustomCategoryChange,
+                    label = { Text("Nama Kategori Baru") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    placeholder = { Text("Masukkan genre game...") }
+                )
+            }
+        }
+
         ExposedDropdownMenuBox(
-            expanded = expanded,
-            onExpandedChange = { expanded = !expanded },
+            expanded = platformExpanded,
+            onExpandedChange = { platformExpanded = !platformExpanded },
             modifier = Modifier.fillMaxWidth()
         ) {
             OutlinedTextField(
@@ -70,22 +127,22 @@ fun FormGame(
                 onValueChange = {},
                 readOnly = true,
                 label = { Text("Choose Platform") },
-                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = platformExpanded) },
                 colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
                 modifier = Modifier
                     .menuAnchor(MenuAnchorType.PrimaryNotEditable)
                     .fillMaxWidth()
             )
             ExposedDropdownMenu(
-                expanded = expanded,
-                onDismissRequest = { expanded = false }
+                expanded = platformExpanded,
+                onDismissRequest = { platformExpanded = false }
             ) {
                 platforms.forEach { selectionOption ->
                     DropdownMenuItem(
                         text = { Text(selectionOption) },
                         onClick = {
                             onPlatformChange(selectionOption)
-                            expanded = false
+                            platformExpanded = false
                         },
                         contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
                     )

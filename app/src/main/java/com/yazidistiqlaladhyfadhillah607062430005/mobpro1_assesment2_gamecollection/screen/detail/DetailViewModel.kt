@@ -2,18 +2,23 @@ package com.yazidistiqlaladhyfadhillah607062430005.mobpro1_assesment2_gamecollec
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.yazidistiqlaladhyfadhillah607062430005.mobpro1_assesment2_gamecollection.database.CategoryDao
 import com.yazidistiqlaladhyfadhillah607062430005.mobpro1_assesment2_gamecollection.database.GameDao
+import com.yazidistiqlaladhyfadhillah607062430005.mobpro1_assesment2_gamecollection.model.Category
 import com.yazidistiqlaladhyfadhillah607062430005.mobpro1_assesment2_gamecollection.model.Game
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
-class DetailViewModel(private val dao: GameDao) : ViewModel() {
+class DetailViewModel(
+    private val dao: GameDao,
+    private val categoryDao: CategoryDao
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow(DetailUiState())
     val uiState: StateFlow<DetailUiState> = _uiState.asStateFlow()
+
+    val categories: StateFlow<List<Category>> = categoryDao.getAllCategories()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     fun loadGame(id: Long) {
         if (id == -1L) return
@@ -24,6 +29,7 @@ class DetailViewModel(private val dao: GameDao) : ViewModel() {
                         id = game.id,
                         title = game.title,
                         platform = game.platform,
+                        categoryId = game.categoryId,
                         rating = game.rating.toFloat(),
                         playTime = game.playTime.toString(),
                         finished = game.finished,
@@ -39,6 +45,8 @@ class DetailViewModel(private val dao: GameDao) : ViewModel() {
         when (action) {
             is DetailAction.OnTitleChange -> _uiState.update { it.copy(title = action.title) }
             is DetailAction.OnPlatformChange -> _uiState.update { it.copy(platform = action.platform) }
+            is DetailAction.OnCategoryChange -> _uiState.update { it.copy(categoryId = action.categoryId) }
+            is DetailAction.OnCustomCategoryChange -> _uiState.update { it.copy(customCategoryName = action.name) }
             is DetailAction.OnRatingChange -> _uiState.update { it.copy(rating = action.rating) }
             is DetailAction.OnPlayTimeChange -> _uiState.update { it.copy(playTime = action.playTime) }
             is DetailAction.OnFinishedChange -> _uiState.update { it.copy(finished = action.finished) }
@@ -52,17 +60,28 @@ class DetailViewModel(private val dao: GameDao) : ViewModel() {
         val state = _uiState.value
         if (state.title.isBlank() || state.platform.isBlank()) return
 
-        val game = Game(
-            id = if (state.isEdit) state.id else 0,
-            title = state.title,
-            platform = state.platform,
-            rating = state.rating.toInt(),
-            playTime = state.playTime.toIntOrNull() ?: 0,
-            finished = state.finished,
-            imageUrl = state.imageUrl
-        )
-
         viewModelScope.launch {
+            var finalCategoryId = state.categoryId
+            val selectedCategory = categories.value.find { it.categoryId == state.categoryId }
+
+            if (selectedCategory?.name == "Other" && state.customCategoryName.isNotBlank()) {
+                val existing = categories.value.find { 
+                    it.name.equals(state.customCategoryName, ignoreCase = true) 
+                }
+                finalCategoryId = existing?.categoryId ?: categoryDao.insertCategory(Category(name = state.customCategoryName))
+            }
+
+            val game = Game(
+                id = if (state.isEdit) state.id else 0,
+                title = state.title,
+                platform = state.platform,
+                categoryId = finalCategoryId,
+                rating = state.rating.toInt(),
+                playTime = state.playTime.toIntOrNull() ?: 0,
+                finished = state.finished,
+                imageUrl = state.imageUrl
+            )
+
             if (state.isEdit) dao.update(game) else dao.insert(game)
         }
     }
@@ -71,7 +90,7 @@ class DetailViewModel(private val dao: GameDao) : ViewModel() {
         val state = _uiState.value
         if (!state.isEdit) return
         viewModelScope.launch {
-            dao.getGameById(state.id)?.let { dao.delete(it) }
+            dao.moveToTrash(state.id)
         }
     }
 }
@@ -80,6 +99,8 @@ data class DetailUiState(
     val id: Long = 0,
     val title: String = "",
     val platform: String = "",
+    val categoryId: Long = 1,
+    val customCategoryName: String = "",
     val rating: Float = 3f,
     val playTime: String = "0",
     val finished: Boolean = false,
