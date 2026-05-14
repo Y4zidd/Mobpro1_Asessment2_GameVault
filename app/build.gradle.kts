@@ -2,7 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-    alias(libs.plugins.ksp)
+    id("kotlin-kapt")
 }
 
 android {
@@ -49,23 +49,19 @@ dependencies {
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
-    implementation(libs.androidx.compose.material.icons.extended)
-
-    // Navigation
     implementation(libs.androidx.navigation.compose)
-
-    // Room
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.compose.material.icons.extended)
+    
+    // Room Database
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
-    ksp(libs.androidx.room.compiler)
-
+    kapt(libs.androidx.room.compiler)
+    
     // DataStore
     implementation(libs.androidx.datastore.preferences)
-
-    // ViewModel
-    implementation(libs.androidx.lifecycle.viewmodel.compose)
-
-    // Image Loading
+    
+    // Image Loading (Coil)
     implementation(libs.coil.compose)
 
     testImplementation(libs.junit)
